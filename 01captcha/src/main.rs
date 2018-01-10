@@ -1,35 +1,29 @@
-use std::fs::File;
-use std::io::prelude::*;
+extern crate utilities;
 
 fn main() {
-	// Read in file
-	let filename = "input.txt";
-	let mut f = File::open(filename).expect("file not found");
 
-	let mut contents = String::new();
-	f.read_to_string(&mut contents)
-		.expect("something went wrong reading the file");
+	let input = utilities::read_file("input.txt");
 
 	// Turn string into array of ints
 	let mut v = Vec::new();
-	for i in contents.chars() {
+	for i in input.chars() {
 		v.push(i.to_digit(10).unwrap());
 	}
 	let ans = calc_captcha(&v, 1);
 	println!("{}", ans);
 
-	let v_len = v.len() as u32 / 2;
+	let v_len = v.len() / 2;
 	let ans2 = calc_captcha(&v, v_len);
 	println!("{}", ans2);
 }
 
-fn calc_captcha(v :&Vec<u32>, lead: u32) -> u32 {
+fn calc_captcha(v :&Vec<u32>, lead: usize) -> u32 {
 	let mut sum = 0;
-	let v_len = v.len() as u32;
+	let v_len = v.len();
 
 	// Go through each one
 	for (index, value) in v.iter().enumerate() {
-		let real_index = (( index as u32 + lead) % v_len) as usize;
+		let real_index = (index + lead) % v_len;
 
 		if *value == v[real_index] {
 			sum+=*value;
