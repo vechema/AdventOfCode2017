@@ -14,7 +14,10 @@ fn main() {
 		v.push(line_vec);
 	}
 	let ans = calc_diff_checksum(&v);
-	println!("{}", ans);
+	println!("diff checksum: {}", ans);
+
+	let ans2 = calc_div_checksum(&v);
+	println!("div checksum: {}", ans2);
 }
 
 fn calc_diff_checksum(v :&Vec<Vec<u32>>) -> u32 {
@@ -29,4 +32,21 @@ fn calc_diff_checksum(v :&Vec<Vec<u32>>) -> u32 {
 	}
 
 	diffs.iter().sum()
+}
+
+fn calc_div_checksum(v: &Vec<Vec<u32>>) -> u32 {
+
+	let mut divs = Vec::new();
+
+	for line in v.iter() {
+		for num1 in line.iter() {
+			for num2 in line.iter() {
+				if num1 % num2 == 0  && num1 != num2{
+					divs.push(num1 / num2);
+				}
+			}
+		}
+	}
+
+	divs.iter().sum()
 }
