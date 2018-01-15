@@ -10,18 +10,24 @@ fn main() {
 		v.push(i.to_string().parse::<i32>().unwrap());
 	}
 
-	let ans = num_steps(&v);
-	let ans = num_steps(&v);
+	let ans = num_steps(&v, <i32>::max_value());
 	println!("{:?}", ans);
+
+	let ans2 = num_steps(&v, 3);
+	println!("{:?}", ans2);
 }
 
-fn num_steps(vec: &Vec<i32>) -> u32 {
+fn num_steps(vec: &Vec<i32>, decrease_threshold: i32) -> u32 {
 	let mut input = vec.clone();
 	let mut num_steps = 0;
 	let mut index = 0;
 	while index < input.len() {
 		let jump = input[index];
-		input[index] = jump + 1;
+		if jump < decrease_threshold {
+			input[index] = jump + 1;
+		} else {
+			input[index] = jump - 1;
+		}
 		index = (index as i32 + jump) as usize;
 		num_steps+=1;
 	}
