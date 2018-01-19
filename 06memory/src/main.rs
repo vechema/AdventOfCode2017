@@ -10,16 +10,17 @@ fn main() {
 		v.push(i.to_string().parse::<u32>().unwrap());
 	}
 	
-	let ans = num_cycles(&v);
-	println!("{}",ans);
+	let (num_redist, num_cycles) = num_cycles(&v);
+	println!("number redistribution cycles: {}", num_redist);
+	println!("how many cycles: {}", num_cycles);
 }
 
-fn num_cycles(input: &Vec<u32>) -> u32 {
+fn num_cycles(input: &Vec<u32>) -> (u32, usize) {
 	let mut past = Vec::new();
 	let mut vec: Vec<u32> = input.clone();
 	let mut num_cycles = 0;
 
-	while !past.contains(&vec) {
+	while {
 		past.push(vec.clone());
 
 		let mut max: u32 = *vec.iter().max().unwrap();
@@ -34,8 +35,11 @@ fn num_cycles(input: &Vec<u32>) -> u32 {
 		}
 		vec = new_vec;
 		num_cycles +=1;
-	}
-	num_cycles
+		!past.contains(&vec)
+	} {}
+
+	let first_index_vec = past.iter().position(|ref s| s == &&vec).unwrap();
+	(num_cycles, past.len() - first_index_vec)
 }
 
 #[cfg(test)]
