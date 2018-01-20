@@ -1,0 +1,7 @@
+[package]
+name = "recursive"
+version = "0.1.0"
+authors = ["Jo <vechema@gmail.com>"]
+
+[dependencies]
+utilities = { path = "../utilities"}
