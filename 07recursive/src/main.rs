@@ -1,20 +1,22 @@
 extern crate utilities;
-use std::collections::HashSet;
+use std::collections::{HashSet, HashMap};
 
 fn main() {
 	let input = utilities::read_file("input.txt");
 
 	let tower_list = build_tower_list(&input);
-	let bottom_tower = find_bottom_tower(&tower_list);
+	let bottom_tower_name = find_bottom_tower_name(&tower_list);
+	println!("{:?}", bottom_tower_name);
 
-	println!("{:?}", bottom_tower);
+	let required_weight = find_problem_child_weight(&tower_list);
+	println!("{:?}", required_weight);
 }
 
 #[derive(Debug)]
 struct Tower {
 	name: String,
 	weight: u32,
-	kids: Option<Vec<String>>,
+	kids: Vec<String>,
 }
 
 fn build_tower_list(input: &String) -> Vec<Tower> {
@@ -28,20 +30,18 @@ fn build_tower_list(input: &String) -> Vec<Tower> {
 		let weight_unformatted = parts.next().unwrap();
 		let weight = weight_unformatted[1..weight_unformatted.len()-1].parse::<u32>().unwrap();
 
-		let mut kids = None;
-
-		if let Some(_) = parts.next() { // Get rid of ->
-			let unformatted_kids = parts.collect::<Vec<&str>>();
-			kids = Some(unformatted_kids.iter()
-				.map(|&x| {
+		let kids = if let Some(_) = parts.next() { // Get rid of ->
+			parts.map(|x| {
 					if x.contains(",") {
 						String::from(&x[..x.len()-1])
 					} else {
 						String::from(x)
 					}
 				})
-				.collect::<Vec<String>>())
-		}
+				.collect::<Vec<String>>()
+		} else {
+			Vec::new()
+		};
 
 		let new_tower = Tower {name, weight, kids};
 		result.push(new_tower);
@@ -50,21 +50,24 @@ fn build_tower_list(input: &String) -> Vec<Tower> {
 	result
 }
 
-fn find_bottom_tower(tower_list: &Vec<Tower>) -> String {
-	let mut all_the_chillans: HashSet<String> = HashSet::new();
-	for tower in tower_list {
-		if let Some(ref kids) = tower.kids {
-			for kid in kids {
-				all_the_chillans.insert(kid.clone());
-			}
+fn find_bottom_tower_name(tower_list: &Vec<Tower>) -> &String {
+	let mut all_the_chillans: HashSet<&String> = HashSet::new();
+	for &Tower{ref kids, ..} in tower_list {
+		for kid in kids {
+			all_the_chillans.insert(kid);
 		}
 	}
 
-	let mut all_tower_names = HashSet::new();
+	let mut all_tower_names: HashSet<&String> = HashSet::new();
 	for tower in tower_list {
 		let &Tower {ref name, ..} = tower;
-		all_tower_names.insert(name.clone());
+		all_tower_names.insert(name);
 	}
 
-	all_tower_names.difference(&all_the_chillans).next().unwrap().clone()
+	all_tower_names.difference(&all_the_chillans).next().unwrap()
+}
+
+fn find_problem_child_weight(tower_list: &Vec<Tower>) -> u32 {
+
+	4
 }
