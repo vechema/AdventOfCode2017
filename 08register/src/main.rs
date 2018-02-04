@@ -11,6 +11,7 @@ fn main() {
 
 fn execute_instructions(instructions: &Vec<RegisterInstruction>) -> HashMap<String, i32> {
     let mut registers = HashMap::new();
+    let mut max_value = i32::min_value();
 
     for instruct in instructions {
         // Find out if affected register already exists
@@ -42,9 +43,14 @@ fn execute_instructions(instructions: &Vec<RegisterInstruction>) -> HashMap<Stri
                 Command::Dec => num - instruct.change_amount,
                 Command::Inc => num + instruct.change_amount,
             };
+            if num > max_value {
+                max_value = num;
+            }
             registers.insert(instruct.register_affected.clone(), num);
         }
     }
+
+    println!("Highest value ever held in a register: {}", max_value);
 
     registers
 }
