@@ -3,17 +3,23 @@ extern crate utilities;
 fn main() {
     let input = utilities::read_file("input.txt");
 
-	let total_score = calculate_total_score(&input);
+	let (total_score, garbage_char_count) = calculate_total_score(&input);
 	println!("{}", total_score);
+	println!("{}", garbage_char_count);
 }
 
-fn calculate_total_score(groups: &String) -> u32 {
+fn calculate_total_score(groups: &String) -> (u32, u32) {
 	let mut level = 0;
 	let mut score = 0;
 	let mut in_garbage = false;
 	let mut cancel = false;
+	let mut garbage_char_count = 0;
 
 	for char in groups.chars() {
+		if in_garbage && !cancel && char != '!' && char != '>' {
+			garbage_char_count+=1;
+		}
+
 		if cancel {
 			cancel = false;
 		} else if char == '!' {
@@ -30,7 +36,7 @@ fn calculate_total_score(groups: &String) -> u32 {
 		}
 	}
 
-	score
+	(score, garbage_char_count)
 }
 
 #[cfg(test)]
