@@ -8,22 +8,71 @@ fn main() {
 		lengthes.push(num.parse::<usize>().unwrap());
 	}
 
-	let knot_hash_vec = knot_hash(&lengthes);
+	let knot_hash_vec = knot_hash_simple(&lengthes, 1);
 	let knot_hash = knot_hash_vec[0] * knot_hash_vec[1];
 	println!("{}",knot_hash);
+
+	let knot_hash_str = knot_hash_complex(&input);
+	println!("{}",knot_hash_str);
 }
 
-fn knot_hash(lengthes: &Vec<usize>) -> Vec<u32> {
+fn knot_hash_complex(input: &String) -> String {
+	//Turn input into actual input
+	let mut actual_input = Vec::new();
+	for char in input.chars() {
+		actual_input.push(char as usize);
+	}
+	actual_input.push(17);
+	actual_input.push(31);
+	actual_input.push(73);
+	actual_input.push(47);
+	actual_input.push(23);
+
+	// get sparse hash
+	let knot_hash = knot_hash_simple(&actual_input, 64);
+
+	// make dense hash
+	let dense_hash_list = dense_hash(&knot_hash);
+
+	// to hex
+	let mut result = String::new();
+	for num in dense_hash_list {
+		result = format!("{}{:02x}", result, num);
+		println!("{}",result);
+	}
+
+	result
+}
+
+fn dense_hash(list: &Vec<u32>) -> Vec<u32> {
+	let mut index = 0;
+	let mut result = Vec::new();
+	while index < 256 {
+		let sub_list = &list[index..index+16];
+		let mut xor_result = 0;
+		for num in sub_list {
+			xor_result = xor_result ^ num;
+		}
+		result.push(xor_result);
+		index+=16;
+	}
+
+	result
+}
+
+fn knot_hash_simple(lengthes: &Vec<usize>, rounds: u32) -> Vec<u32> {
 	let mut list: Vec<u32> = (0..256).collect();
 
 	let mut position: usize = 0;
 	let mut skip_size = 0;
-	for len in lengthes {
-		let mut list_slice = list_slice(&list, position, *len);
-		list_slice.reverse();
-		insert_slice(&mut list, &list_slice, position);
-		position = (position + len + skip_size) % list.len();
-		skip_size+=1;
+	for round in 0..rounds {
+		for len in lengthes {
+			let mut list_slice = list_slice(&list, position, *len);
+			list_slice.reverse();
+			insert_slice(&mut list, &list_slice, position);
+			position = (position + len + skip_size) % list.len();
+			skip_size+=1;
+		}
 	}
 
 	list
@@ -91,5 +140,11 @@ mod tests {
 		let slice = vec![7,8,9,10];
 		insert_slice(&mut list, &slice, 3);
 		assert_eq!(list, vec![9,10,2,7,8]);
+	}
+
+	#[test]
+	fn complex_hash_empty() {
+		let input = String::new();
+		assert_eq!(knot_hash_complex(&input),"a2582a3a0e66e6e86e3812dcb672a272");
 	}
 }
