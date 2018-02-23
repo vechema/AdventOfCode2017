@@ -7,7 +7,7 @@ fn main() {
 
 	let steps = make_direction_list(&input);
 	let compact_steps = compact_directions(&steps);
-	println!("{:?}", compact_steps);
+	println!("{:?}, length: {}", compact_steps, compact_steps.len());
 }
 
 fn make_direction_list(input: &String) -> Vec<Direction> {
@@ -29,7 +29,46 @@ fn make_direction_list(input: &String) -> Vec<Direction> {
 }
 
 fn compact_directions(directions: &Vec<Direction>) -> Vec<Direction> {
-	Vec::new()
+	let mut result = Vec::new();
+	let mut temp_directions: Vec<Direction> = directions.clone();
+	let mut to_remove : Vec<usize> = vec![0];
+
+	while to_remove.len() > 0{
+		//println!("directions length: {}", temp_directions.len());
+		to_remove = Vec::new();
+		for (i1, dir1) in temp_directions.iter().enumerate() {
+			for (i2, dir2) in temp_directions.iter().enumerate().skip(i1) {
+				//println!("{:?}({}), {:?}({})", dir1,i1,dir2,i2);
+				if !to_remove.contains(&i1) && !to_remove.contains(&i2) {
+					match combine_directions(&dir1, &dir2) {
+						Cancel => {to_remove.push(i1); to_remove.push(i2);},
+						NoCombo => {},
+						Combo(i) => {
+							to_remove.push(i1);
+							to_remove.push(i2);
+							result.push(i);
+						},
+					}
+				} else {
+					//println!("\t{} or {} has been removed", i1, i2);
+					//println!("\t{:?}", to_remove);
+				}
+			}
+		}
+		to_remove.sort_by(|a, b| b.cmp(a));
+		for remove in to_remove.iter() {
+			temp_directions.remove(*remove);
+		}
+
+		result.append(&mut temp_directions);
+		//println!("result: {:?}", result);
+		if to_remove.len() > 0 {
+			temp_directions = result.clone();
+			result = Vec::new();
+		}
+	}
+
+	result
 }
 
 fn combine_directions(direction1: &Direction, direction2: &Direction) -> ComboDirection {
@@ -42,11 +81,10 @@ fn combine_directions(direction1: &Direction, direction2: &Direction) -> ComboDi
 	}
 
 	match (direction1, direction2) {
-		(&N, _) | (_, &N) => return Combo(N),
+		(&NE, &NW) | (&NW, &NE) => return Combo(N),
+		(&SE, &SW) | (&SW, &SE) => return Combo(S),
 		(_, _) => return NoCombo,
 	}
-
-	NoCombo
 }
 
 fn are_opposite(dir1: &Direction, dir2: &Direction) -> bool {
@@ -83,9 +121,9 @@ fn combo_direction_north(direction1: &Direction, direction2: &Direction) -> Comb
 
 	if direction1 == &N && direction2.is_south() {
 		if direction2.is_west() {
-			return(Combo(NW));
+			return Combo(NW);
 		} else if direction2.is_east() {
-			return(Combo(NE));
+			return Combo(NE);
 		}
 	}
 	NoCombo
@@ -95,15 +133,15 @@ fn combo_direction_south(direction1: &Direction, direction2: &Direction) -> Comb
 
 	if direction1 == &S && direction2.is_north() {
 		if direction2.is_west() {
-			return(Combo(SW));
+			return Combo(SW);
 		} else if direction2.is_east() {
-			return(Combo(SE));
+			return Combo(SE);
 		}
 	}
 	NoCombo
 }
 
-#[derive(Debug,Eq,PartialEq)]
+#[derive(Debug,Eq,PartialEq,Clone)]
 enum Direction {
 	N,
 	NE,
@@ -187,5 +225,55 @@ mod tests {
 	#[test]
 	fn combo_combo3() {
 		assert_eq!(combine_directions(&S,&NE),Combo(SE));
+	}
+
+	#[test]
+	fn combo_combo4() {
+		assert_eq!(combine_directions(&SW,&SE),Combo(S));
+	}
+
+	#[test]
+	fn combo_combo5() {
+		assert_eq!(combine_directions(&N,&SE),Combo(NE));
+	}
+
+	#[test]
+	fn combo_no_combo() {
+		assert_eq!(combine_directions(&SW,&S), NoCombo);
+	}
+
+	#[test]
+	fn combo_cancel() {
+		assert_eq!(combine_directions(&NE,&SW),Cancel);
+	}
+
+	#[test]
+	fn combo_list0() {
+		assert_eq!(compact_directions(&vec![N,NE,NW,S,S]),vec![]);
+	}
+
+	#[test]
+	fn combo_list1() {
+		assert_eq!(compact_directions(&vec![NE,NE,NE]),vec![NE,NE,NE]);
+	}
+
+	#[test]
+	fn combo_list2() {
+		assert_eq!(compact_directions(&vec![NE,NE,SW,SW]),vec![]);
+	}
+
+	#[test]
+	fn combo_list3() {
+		assert_eq!(compact_directions(&vec![NE,NE,S,S]),vec![SE,SE]);
+	}
+
+	#[test]
+	fn combo_list4() {
+		assert_eq!(compact_directions(&vec![SE,SW,SE,SW,SW]),vec![S,S,SW]);
+	}
+
+	#[test]
+	fn combo_list5() {
+		assert_eq!(compact_directions(&vec![SE,SW,SE,SW,SW]),vec![S,S,SW]);
 	}
 }
