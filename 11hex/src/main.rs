@@ -6,8 +6,11 @@ fn main() {
     let input = utilities::read_file("input.txt");
 
 	let steps = make_direction_list(&input);
-	let compact_steps = compact_directions(&steps);
+	let compact_steps = ordered_compact_dircetions(&steps);
 	println!("{:?}, length: {}", compact_steps, compact_steps.len());
+
+	// BETTER SOLUTION: A struct that keeps counters for each direction
+	// OBSERVATION: Can only have up to two directions at a time
 }
 
 fn make_direction_list(input: &String) -> Vec<Direction> {
@@ -26,6 +29,26 @@ fn make_direction_list(input: &String) -> Vec<Direction> {
 	}
 
 	steps
+}
+
+fn ordered_compact_dircetions(directions: &Vec<Direction>) -> Vec<Direction> {
+	let mut result: Vec<Direction> = Vec::new();
+	let temp_directions: Vec<Direction> = directions.clone();
+	let mut max_length = 0;
+
+	for dir in temp_directions.iter() {
+		result.push(dir.clone());
+		result = compact_directions(&result);
+		if result.len() > max_length {
+			max_length = result.len();
+		}
+
+		//println!("{:?}", result);
+	}
+
+	println!("max length: {}", max_length);
+
+	result
 }
 
 fn compact_directions(directions: &Vec<Direction>) -> Vec<Direction> {
@@ -249,31 +272,31 @@ mod tests {
 
 	#[test]
 	fn combo_list0() {
-		assert_eq!(compact_directions(&vec![N,NE,NW,S,S]),vec![]);
+		assert_eq!(ordered_compact_dircetions(&vec![N,NE,NW,S,S]),vec![]);
 	}
 
 	#[test]
 	fn combo_list1() {
-		assert_eq!(compact_directions(&vec![NE,NE,NE]),vec![NE,NE,NE]);
+		assert_eq!(ordered_compact_dircetions(&vec![NE,NE,NE]),vec![NE,NE,NE]);
 	}
 
 	#[test]
 	fn combo_list2() {
-		assert_eq!(compact_directions(&vec![NE,NE,SW,SW]),vec![]);
+		assert_eq!(ordered_compact_dircetions(&vec![NE,NE,SW,SW]),vec![]);
 	}
 
 	#[test]
 	fn combo_list3() {
-		assert_eq!(compact_directions(&vec![NE,NE,S,S]),vec![SE,SE]);
+		assert_eq!(ordered_compact_dircetions(&vec![NE,NE,S,S]),vec![SE,SE]);
 	}
 
 	#[test]
 	fn combo_list4() {
-		assert_eq!(compact_directions(&vec![SE,SW,SE,SW,SW]),vec![S,S,SW]);
+		assert_eq!(ordered_compact_dircetions(&vec![SE,SW,SE,SW,SW]),vec![S,S,SW]);
 	}
 
 	#[test]
 	fn combo_list5() {
-		assert_eq!(compact_directions(&vec![SE,SW,SE,SW,SW]),vec![S,S,SW]);
+		assert_eq!(ordered_compact_dircetions(&vec![SE,SW,SE,SW,SW]),vec![S,S,SW]);
 	}
 }
