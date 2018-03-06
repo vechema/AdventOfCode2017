@@ -6,6 +6,10 @@ fn main() {
 	let group_member = 0;
 	let group = find_group(group_member, &edge_list);
 	println!("Group for {}, {:?}. Length: {}",group_member, group, group.len());
+
+	let all_groups = find_all_groups(&edge_list);
+	println!("All groups: {:?}. Length: {}", all_groups, all_groups.len());
+
 }
 
 fn format_input(input: &String) -> Vec<Vec<usize>> {
@@ -48,4 +52,20 @@ fn find_group(member: usize, edge_list: &Vec<Vec<usize>>) -> Vec<usize>{
 		}
 	}
 	used_indices
+}
+
+fn find_all_groups(edge_list: &Vec<Vec<usize>>) -> Vec<Vec<usize>> {
+	let num_edges = edge_list.len();
+	let mut indices = (0..num_edges).collect::<Vec<usize>>();
+	let mut result = Vec::new();
+
+	for ind in 0..num_edges {
+		if indices.contains(&ind) {
+			let ind_group = find_group(ind, &edge_list);
+			result.push(ind_group.clone());
+			indices = indices.into_iter().filter(|e| !ind_group.contains(e)).collect::<Vec<usize>>();
+		}
+	}
+
+	result
 }
