@@ -6,8 +6,11 @@ fn main() {
 	let scanners = create_scanners(&input);
 	//println!("{:?}",scanners);
 
-	let score = run(&scanners);
-	println!("{}", score);
+	let score = run(&scanners, 0);
+	println!("Score when running through, no delay: {}", score);
+
+	let delay = delay(&scanners);
+	println!("Pico seconds to delay: {}", delay);
 }
 
 fn create_scanners(input: &String) -> Vec<Scanner> {
@@ -31,9 +34,15 @@ fn create_scanners(input: &String) -> Vec<Scanner> {
 	result
 }
 
-fn run(scanners: &Vec<Scanner>) -> u32 {
+fn run(scanners: &Vec<Scanner>, delay: u32) -> u32 {
 	let mut score = 0;
 	let mut scanners_mut = scanners.clone();
+
+	for _ in 0..delay {
+		for scanner in scanners_mut.iter_mut() {
+			scanner.scan();
+		}
+	}
 
 	for player_position in 0..scanners_mut.len()
 	{
@@ -64,6 +73,29 @@ fn run(scanners: &Vec<Scanner>) -> u32 {
 	score
 }
 
+fn delay(scanners: &Vec<Scanner>) -> u32 {
+	let mut delay = 0;
+	let mut scanner_in_first_position = true;
+
+	while scanner_in_first_position {
+		scanner_in_first_position = false;
+		let mut scanners_mut = scanners.clone();
+
+		for scanner in scanners_mut.iter_mut() {
+			if scanner.range > 0 {
+				let scanner_depth = scanner.depth;
+				scanner.scan_times(scanner_depth + delay);
+			}
+			if scanner.position == 0  && scanner.range > 0 {
+				scanner_in_first_position = true;
+				break;
+			}
+		}
+		delay = delay + 1;
+	}
+	return (delay - 1) as u32
+}
+
 #[derive(Clone)]
 struct Scanner {
 	depth: u32,
@@ -77,6 +109,13 @@ impl Scanner {
 
 	fn new(depth: u32, range: u32) -> Scanner {
 		Scanner {depth: depth, range: range, position: 0, going_down: true, has_player: false}
+	}
+
+	fn scan_times(&mut self, time: u32) -> u32 {
+		let x : i32 = ((time + self.position) % ((self.range - 1) * 2)) as i32;
+		let a = (self.range - 1) as i32;
+		self.position = (- ( -x + a ).abs() + a) as u32;
+		self.position
 	}
 
 	fn scan(&mut self) -> u32 {
@@ -156,6 +195,51 @@ mod tests {
 			scanner.scan();
 		}
 		assert_eq!(scanner.scan(), 3);
+	}
+
+	#[test]
+	fn scan_times_already_scanned() {
+		let mut scanner = Scanner::new(1,4);
+		for _ in 0..2 {
+			scanner.scan();
+		}
+		assert_eq!(scanner.scan_times(1), 3);
+	}
+
+	#[test]
+	fn scan_times1 () {
+		let mut scanner = Scanner::new(1,4);
+		assert_eq!(scanner.scan_times(1), 1);
+	}
+
+	#[test]
+	fn scan_times2 () {
+		let mut scanner = Scanner::new(1,4);
+		assert_eq!(scanner.scan_times(2), 2);
+	}
+
+	#[test]
+	fn scan_times3() {
+		let mut scanner = Scanner::new(1,4);
+		assert_eq!(scanner.scan_times(3), 3);
+	}
+
+	#[test]
+	fn scan_times4 () {
+		let mut scanner = Scanner::new(1,4);
+		assert_eq!(scanner.scan_times(4), 2);
+	}
+
+	#[test]
+	fn scan_times5 () {
+		let mut scanner = Scanner::new(1,4);
+		assert_eq!(scanner.scan_times(5), 1);
+	}
+
+	#[test]
+	fn scan_times6 () {
+		let mut scanner = Scanner::new(1,4);
+		assert_eq!(scanner.scan_times(6), 0);
 	}
 
 	#[test]
